@@ -4,22 +4,50 @@ import InterfaceAdotanteRepository from "../repositories/interfaces/InterfaceAdo
 
 export default class AdotanteRepository implements InterfaceAdotanteRepository {
     private repository: Repository<AdotanteEntity>;
-    
+
     constructor(repository: Repository<AdotanteEntity>) {
         this.repository = repository;
     }
 
-      criaAdotante(adotante: AdotanteEntity): void {
-        this.repository.save(adotante);
+    async criaAdotante(adotante: AdotanteEntity): Promise<void> {
+        await this.repository.save(adotante);
     }
 
-    listarAdotantes(): AdotanteEntity[] | Promise<AdotanteEntity[]> {
-        throw new Error("Method not implemented.");
+    async listarAdotantes(): Promise<AdotanteEntity[]> {
+            return await this.repository.find();
     }
-    atualizaAdotante(id: number, adotante: AdotanteEntity): Promise<{ success: boolean; message?: string; }> {
-        throw new Error("Method not implemented.");
+
+    async atualizaAdotante(id: number, adotante: AdotanteEntity): Promise<{ success: boolean; message?: string; }> {
+         try {
+            const adotanteExistente = await this.repository.findOne({where: {id}});
+            if (!adotanteExistente) {
+                return { success: false, message: "Adotante não encontrado" };
+            }
+            Object.assign(adotanteExistente, adotante);
+            await this.repository.save(adotanteExistente);
+            return { success: true };
+        } catch (error) {
+            console.log(error);
+            return {
+                success: false,
+                message: "Erro ao atualizar o adotante"
+            }
+        }
     }
-    deletaAdotante(id: number): Promise<{ success: boolean; message?: string; }> | void {
-        throw new Error("Method not implemented.");
+    async deletaAdotante(id: number): Promise<{ success: boolean; message?: string; }> {
+        try {
+            const adotanteExistente = await this.repository.findOne({where: {id}});
+            if (!adotanteExistente) {
+                return { success: false, message: "Adotante não encontrado" };
+            }
+            await this.repository.remove(adotanteExistente);
+            return { success: true };
+        } catch (error) {
+            console.log(error);
+            return {
+                success: false,
+                message: "Erro ao deletar o adotante"
+            }
+        }
     }
 }
